@@ -1,11 +1,8 @@
 package db
 
-import kotlinx.coroutines.ThreadContextElement
 import java.sql.Connection
 import java.sql.SQLException
 import javax.sql.DataSource
-import kotlin.coroutines.AbstractCoroutineContextElement
-import kotlin.coroutines.CoroutineContext
 
 class Transaction(private val db: DataSource) {
 
@@ -40,7 +37,7 @@ class Transaction(private val db: DataSource) {
     currentTransaction.set(this)
   }
 
-  fun detach() {
+  private fun detach() {
     currentTransaction.set(null)
   }
 }
@@ -55,30 +52,3 @@ fun <R> DataSource.withConnection(block: Connection.() -> R): R {
   }
 }
 
-fun <R> DataSource.inTransaction(block: Connection.() -> R): R {
-  val transaction = Transaction(this)
-  transaction.attach() // Присоединяем транзакцию к текущему потоку
-  try {
-    val result = transaction.connection.block() // Выполняем блок в транзакции
-    transaction.close(true) // Завершаем транзакцию с commit
-    return result
-  } catch (e: Exception) {
-    transaction.close(false) // Завершаем транзакцию с rollback
-    throw e // Пробрасываем исключение дальше
-  }
-}
-
-class TransactionCoroutineContext(private val tx: Transaction? = Transaction.current()) :
-  ThreadContextElement<Transaction?>, AbstractCoroutineContextElement(Key) {
-
-  companion object Key : CoroutineContext.Key<TransactionCoroutineContext>
-
-  override fun updateThreadContext(context: CoroutineContext): Transaction? {
-    tx?.attach()
-    return tx
-  }
-
-  override fun restoreThreadContext(context: CoroutineContext, oldState: Transaction?) {
-    oldState?.attach()
-  }
-}

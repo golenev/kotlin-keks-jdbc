@@ -1,69 +1,55 @@
 package crud
 
 import db.*
-import models.Department
 import models.Employee
+import models.EmployeeWithDepartment
 import java.sql.ResultSet
-import java.util.*
-import javax.sql.DataSource
 
-class EmployeeRepository(db: DataSource) : BaseRepository(db, "Employee") {
-    private val mapper: ResultSet.() -> Employee = {
+object EmployeeRepository : BaseRepository(table = "Employee") {
+
+    private val selectMapper: ResultSet.() -> Employee = {
         Employee(
-            id = getLong("id"),
-            name = getString("name"),
+            employeeId = getLong("employee_id"),
+            employeeName = getString("employee_name"),
             age = getInt("age"),
             sex = getString("sex"),
-            department = Department(getLong("department_id"), getString("name"))
+            departmentId = getInt("department_id")
         )
     }
 
-    // Получение сотрудника по ID
+    private val joinMapper: ResultSet.() -> EmployeeWithDepartment = {
+        EmployeeWithDepartment(
+            employeeId = getLong("employee_id"),
+            employeeName = getString("employee_name"),
+            departmentId = getLong("department_id"),
+            departmentName = getString("department_name"),
+            employeeAge = getString("age")
+        )
+    }
+
+    fun getEmployeesWithDepartmentsByEmpId(employeeId: Long): List<EmployeeWithDepartment> {
+        return fullJoin(
+            otherTable = "Department", // Вторая таблица
+            joinCondition = "d.department_id = e.department_id", // Условие JOIN
+            where = where { "e.employee_id" equals employeeId }, // Условие WHERE читать как where e.employee_id = 'employeeId'
+            mapper = joinMapper
+        )
+    }
+
     fun getEmployeeById(id: Long): Employee? =
-        db.query(table, mapOf("id" to id), mapper = mapper).firstOrNull()
+        db.query(table, where = where { "employee_id" equals id }, mapper = selectMapper).firstOrNull()
 
-    // Создание нового сотрудника
-    fun createEmployee(name: String, age: Int, sex: String, departmentId: Long, departmentName: String): Employee {
-        // Проверяем, существует ли Department с указанным id
-//        val departmentExists = db.query("Department", mapOf("id" to departmentId)) {
-//            getLong("id")
-//        }.isNotEmpty()
-//
-//        if (!departmentExists) {
-//            throw IllegalArgumentException("Department with id $departmentId does not exist")
-//        }
-
-        // Создаем сотрудника
-        val employee = Employee(
-            id = 0, // ID будет сгенерирован базой данных
-            name = name,
-            age = age,
-            sex = sex,
-            department = Department(departmentId, departmentName)
+    fun createEmployee(employee: Employee) {
+        db.insert(
+            table, mapOf(
+                "name" to employee.employeeName,
+                "age" to employee.age,
+                "sex" to employee.sex,
+                "department_id" to employee.departmentId
+            )
         )
-
-        // Вставляем запись в таблицу Employee
-
-        db.inTransaction {
-            db.insert(
-                "Department", mapOf(
-                    "id" to departmentId,
-                    "name" to departmentName
-                )
-            )
-            db.insert(
-                table, mapOf(
-                    "name" to employee.name,
-                    "age" to employee.age,
-                    "sex" to employee.sex,
-                    "department_id" to employee.department.id
-                )
-            )
-        }
-        return employee
     }
 
-    // Обновление сотрудника
     fun updateEmployee(id: Long, name: String, age: Int, sex: String, departmentId: Long): Int =
         db.update(
             table, mapOf("id" to id), mapOf(
@@ -74,7 +60,6 @@ class EmployeeRepository(db: DataSource) : BaseRepository(db, "Employee") {
             )
         )
 
-    // Удаление сотрудника
     fun deleteEmployee(id: Long): Int =
         db.delete(table, mapOf("id" to id))
 }

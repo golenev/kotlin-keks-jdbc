@@ -1,9 +1,6 @@
 package util
 
-import db.BaseModel
-import db.toId
 import java.math.BigDecimal
-import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSuperclassOf
@@ -15,7 +12,6 @@ fun String.toType(type: KClass<*>) = when {
   type == Boolean::class -> toBoolean()
   type == Int::class -> toInt()
   type == BigDecimal::class -> d
-  type == UUID::class || BaseModel::class.isSuperclassOf(type) -> this.toId()
   Enum::class.isSuperclassOf(type) -> type.java.enumConstants.find { (it as Enum<*>).name == this }
   else -> error("Unsupported type=$type")
 }

@@ -1,36 +1,38 @@
 package tests
 
 import crud.EmployeeRepository
-import db.DBModule
+import db.MyDbConnection
 import models.Employee
 import org.junit.jupiter.api.Test
+import util.FakeUtils
 
 class DbTests {
 
+    @Test
+    fun testCreateEmp() {
+
+        val employee = Employee(
+            employeeId = 0,
+            employeeName = FakeUtils.faker.name().name(),
+            age = FakeUtils.faker.number().numberBetween(18, 67),
+            sex = "male",
+            departmentId = 101
+        )
+        MyDbConnection.inTransaction {
+            EmployeeRepository.createEmployee(employee)
+        }
+    }
 
     @Test
-    fun keksTest () {
-        println("qwerqwer")
-        // Настройка подключения к базе данных
-        val dataSource = DBModule.configure()
-
-        // Создание репозитория
-        val employeeRepository = EmployeeRepository(dataSource)
-
-        // Создание нового сотрудника
-        val newEmployee: Employee = employeeRepository.createEmployee("John Doe", 30, "Male", 1, "Finance")
-        println("Created employee: $newEmployee")
-/*
-        // Получение сотрудника по ID
-        val employee = employeeRepository.getEmployeeById(newEmployee.id)
-        println("Employee: $employee")
-
-        // Обновление сотрудника
-        val updatedRows = employeeRepository.updateEmployee(newEmployee.id, "Jane Doe", 31, "Female", 2)
-        println("Updated $updatedRows rows")
-
-        // Удаление сотрудника
-        val deletedRows = employeeRepository.deleteEmployee(newEmployee.id)
-        println("Deleted $deletedRows rows")*/
+    fun selectWhereTest() {
+        val res = MyDbConnection.inTransaction { EmployeeRepository.getEmployeeById(25) }
+        val r = 0
     }
+
+    @Test
+    fun joinWithWhereTest() {
+        val res = MyDbConnection.inTransaction { EmployeeRepository.getEmployeesWithDepartmentsByEmpId(25) }
+        val r = 0
+    }
+
 }

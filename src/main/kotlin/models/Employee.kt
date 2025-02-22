@@ -1,16 +1,10 @@
 package models
 
 data class Employee(
-
-    val id: Long,
-
-    val name: String,
-
+    val employeeId: Long,
+    val employeeName: String,
     val age: Int,
-
     val sex: String,
-
-    val department: Department
+    val departmentId: Int,
 )
 
-class Department(val id: Long, val name: String)
