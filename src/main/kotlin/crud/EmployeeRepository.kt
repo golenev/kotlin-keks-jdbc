@@ -1,8 +1,9 @@
 package crud
 
-import db.*
+import library_layer.*
 import models.Employee
 import models.EmployeeWithDepartment
+import util.FakeUtils
 import java.sql.ResultSet
 
 object EmployeeRepository : BaseRepository(table = "Employee") {
@@ -27,39 +28,34 @@ object EmployeeRepository : BaseRepository(table = "Employee") {
         )
     }
 
-    fun getEmployeesWithDepartmentsByEmpId(employeeId: Long): List<EmployeeWithDepartment> {
-        return fullJoin(
+    fun getEmployeesWithDepartmentsByEmpId(employeeId: Long): List<EmployeeWithDepartment> =
+         fullJoin(
             otherTable = "Department", // Вторая таблица
             joinCondition = "d.department_id = e.department_id", // Условие JOIN
             where = where { "e.employee_id" equals employeeId }, // Условие WHERE читать как where e.employee_id = 'employeeId'
             mapper = joinMapper
         )
-    }
+
 
     fun getEmployeeById(id: Long): Employee? =
-        db.query(table, where = where { "employee_id" equals id }, mapper = selectMapper).firstOrNull()
+        db.query(
+            table,
+            where = where { "employee_id" equals id },
+            mapper = selectMapper
+        ).firstOrNull()
 
-    fun createEmployee(employee: Employee) {
+    fun createEmployee(employee: Employee) =
         db.insert(
-            table, mapOf(
-                "name" to employee.employeeName,
-                "age" to employee.age,
-                "sex" to employee.sex,
+            table,
+            values = values {
+                "employee_id" to employee.employeeId
+                "employee_name" to employee.employeeName
+                "age" to employee.age
+                "sex" to employee.sex
                 "department_id" to employee.departmentId
-            )
-        )
-    }
-
-    fun updateEmployee(id: Long, name: String, age: Int, sex: String, departmentId: Long): Int =
-        db.update(
-            table, mapOf("id" to id), mapOf(
-                "name" to name,
-                "age" to age,
-                "sex" to sex,
-                "department_id" to departmentId
-            )
+            }
         )
 
     fun deleteEmployee(id: Long): Int =
-        db.delete(table, mapOf("id" to id))
+        db.delete(table, where { "employee_id" equals id })
 }

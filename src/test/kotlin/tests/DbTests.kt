@@ -1,10 +1,15 @@
 package tests
 
 import crud.EmployeeRepository
-import db.MyDbConnection
+import connection.MyDbConnection
+import crud.EmployeeRepository.createEmployee
+import crud.EmployeeRepository.deleteEmployee
+import crud.EmployeeRepository.getEmployeeById
+import crud.EmployeeRepository.getEmployeesWithDepartmentsByEmpId
 import models.Employee
 import org.junit.jupiter.api.Test
 import util.FakeUtils
+import java.util.UUID
 
 class DbTests {
 
@@ -19,20 +24,35 @@ class DbTests {
             departmentId = 101
         )
         MyDbConnection.inTransaction {
-            EmployeeRepository.createEmployee(employee)
+            createEmployee(employee)
         }
     }
 
     @Test
     fun selectWhereTest() {
-        val res = MyDbConnection.inTransaction { EmployeeRepository.getEmployeeById(25) }
-        val r = 0
+        val res = MyDbConnection.inTransaction { getEmployeeById(25) }
+        val r = 0 //для дебага
     }
 
     @Test
     fun joinWithWhereTest() {
-        val res = MyDbConnection.inTransaction { EmployeeRepository.getEmployeesWithDepartmentsByEmpId(25) }
-        val r = 0
+        val res = MyDbConnection.inTransaction { getEmployeesWithDepartmentsByEmpId(25) }
+        val r = 0 //для дебага
+    }
+
+    @Test
+    fun deleteWhereTest() {
+        val employee = Employee(
+            employeeId = FakeUtils.faker.number().randomNumber(),
+            employeeName = FakeUtils.faker.name().name(),
+            age = FakeUtils.faker.number().numberBetween(18, 67),
+            sex = "male",
+            departmentId = 101
+        )
+        MyDbConnection.inTransaction {
+            createEmployee(employee)
+            deleteEmployee(employee.employeeId)
+        }
     }
 
 }

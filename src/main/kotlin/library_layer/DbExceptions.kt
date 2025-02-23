@@ -1,4 +1,4 @@
-package db
+package library_layer
 
 open class BusinessException(messageKey: String, cause: Throwable? = null): Exception(messageKey, cause)
 

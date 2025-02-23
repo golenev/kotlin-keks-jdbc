@@ -1,4 +1,4 @@
-package db
+package connection
 
 import org.postgresql.ds.PGSimpleDataSource
 import java.sql.Connection
