@@ -106,26 +106,9 @@ private fun <R> ResultSet.map(mapper: ResultSet.() -> R): List<R> = mutableListO
     while (next()) it += mapper()
 }
 
-fun ResultSet.getId(column: String = "id") = getString(column).toId()
-fun ResultSet.getIdOrNull(column: String) = getString(column)?.toId()
-fun ResultSet.getInstant(column: String) = getTimestamp(column).toInstant()
-fun ResultSet.getLocalDate(column: String) = getDate(column).toLocalDate()
-fun ResultSet.getPeriod(column: String) = Period.parse(getString(column))
-fun ResultSet.getIntOrNull(column: String) = getObject(column)?.let { (it as Number).toInt() }
-
-fun String.toId(): UUID = UUID.fromString(this)
-
-inline fun <reified T : Enum<T>> ResultSet.getEnum(column: String) = enumValueOf<T>(getString(column))
-inline fun <reified T : Enum<T>> ResultSet.getEnumOrNull(column: String) = getString(column)?.let { enumValueOf<T>(it) }
-
 open class SqlExpr(@Language("SQL") protected val expr: String, val values: Collection<*> = emptyList<Any>()) {
     constructor(expr: String, vararg values: Any?) : this(expr, values.toList())
-
     open fun expr(key: String) = expr
-}
-
-class SqlComputed(@Language("SQL") expr: String) : SqlExpr(expr) {
-    override fun expr(key: String) = "$key = $expr"
 }
 
 open class SqlOp(val operator: String, value: Any? = null) :
@@ -133,22 +116,7 @@ open class SqlOp(val operator: String, value: Any? = null) :
     override fun expr(key: String) = "$key $operator" + ("?".takeIf { values.isNotEmpty() } ?: "")
 }
 
-val notNull = SqlOp("is not null")
-
-class Between(from: Any, to: Any) : SqlExpr("", from, to) {
-    override fun expr(key: String) = "$key between ? and ?"
-}
-
-class BetweenExcl(from: Any, to: Any) : SqlExpr("", from, to) {
-    override fun expr(key: String) = "$key >= ? and $key < ?"
-}
-
-class NullOrOp(operator: String, value: Any?) : SqlOp(operator, value) {
-    override fun expr(key: String) = "($key is null or $key $operator ?)"
-}
-
 class NotIn(values: Collection<*>) : SqlExpr("", values) {
     constructor(vararg values: Any?) : this(values.toList())
-
     override fun expr(key: String) = inExpr(key, values).replace(" in ", " not in ")
 }

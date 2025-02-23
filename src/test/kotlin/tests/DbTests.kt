@@ -15,7 +15,6 @@ class DbTests {
 
     @Test
     fun testCreateEmp() {
-
         val employee = Employee(
             employeeId = 0,
             employeeName = FakeUtils.faker.name().name(),
@@ -31,13 +30,13 @@ class DbTests {
     @Test
     fun selectWhereTest() {
         val res = MyDbConnection.inTransaction { getEmployeeById(25) }
-        val r = 0 //для дебага
+        println(res)
     }
 
     @Test
     fun joinWithWhereTest() {
         val res = MyDbConnection.inTransaction { getEmployeesWithDepartmentsByEmpId(25) }
-        val r = 0 //для дебага
+       println(res)
     }
 
     @Test

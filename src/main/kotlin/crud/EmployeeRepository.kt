@@ -3,44 +3,44 @@ package crud
 import library_layer.*
 import models.Employee
 import models.EmployeeWithDepartment
-import util.FakeUtils
+import util.column
 import java.sql.ResultSet
 
 object EmployeeRepository : BaseRepository(table = "Employee") {
 
     private val selectMapper: ResultSet.() -> Employee = {
         Employee(
-            employeeId = getLong("employee_id"),
-            employeeName = getString("employee_name"),
-            age = getInt("age"),
-            sex = getString("sex"),
-            departmentId = getInt("department_id")
+            employeeId = getLong(Employee::employeeId.column()),
+            employeeName = getString(Employee::employeeName.column()),
+            age = getInt(Employee::age.column()),
+            sex = getString(Employee::sex.column()),
+            departmentId = getInt(Employee::departmentId.column())
         )
     }
 
     private val joinMapper: ResultSet.() -> EmployeeWithDepartment = {
         EmployeeWithDepartment(
-            employeeId = getLong("employee_id"),
-            employeeName = getString("employee_name"),
-            departmentId = getLong("department_id"),
-            departmentName = getString("department_name"),
-            employeeAge = getString("age")
+            employeeId = getLong(EmployeeWithDepartment::employeeId.column()),
+            employeeName = getString(EmployeeWithDepartment::employeeName.column()),
+            departmentId = getLong(EmployeeWithDepartment::departmentId.column()),
+            departmentName = getString(EmployeeWithDepartment::departmentName.column()),
+            age = getString(EmployeeWithDepartment::age.column()),
+            sex = getString(EmployeeWithDepartment::sex.column())
         )
     }
 
     fun getEmployeesWithDepartmentsByEmpId(employeeId: Long): List<EmployeeWithDepartment> =
-         fullJoin(
+        fullJoin(
             otherTable = "Department", // Вторая таблица
-            joinCondition = "d.department_id = e.department_id", // Условие JOIN
-            where = where { "e.employee_id" equals employeeId }, // Условие WHERE читать как where e.employee_id = 'employeeId'
+            joinCondition = "d.department_id = e.department_id", // Условие JOIN, тут подумать, как убрать хардкод
+            where = where { "e.${Employee::employeeId.column()}" equals employeeId }, // Условие WHERE читать как where e.employee_id = 'employeeId'
             mapper = joinMapper
         )
-
 
     fun getEmployeeById(id: Long): Employee? =
         db.query(
             table,
-            where = where { "employee_id" equals id },
+            where = where { Employee::employeeId.column() equals id },
             mapper = selectMapper
         ).firstOrNull()
 
@@ -57,5 +57,5 @@ object EmployeeRepository : BaseRepository(table = "Employee") {
         )
 
     fun deleteEmployee(id: Long): Int =
-        db.delete(table, where { "employee_id" equals id })
+        db.delete(table, where { Employee::employeeId.column() equals id })
 }

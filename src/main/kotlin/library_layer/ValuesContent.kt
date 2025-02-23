@@ -2,7 +2,6 @@ package library_layer
 
 class ValuesBuilder {
     private val data = mutableMapOf<String, Any?>()
-
     infix fun String.to(value: Any?) {
         data[this] = value
     }
