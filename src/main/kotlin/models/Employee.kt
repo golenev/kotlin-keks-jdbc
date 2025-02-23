@@ -1,8 +1,6 @@
 package models
 
 import library_layer.MyColumnName
-import kotlin.reflect.KProperty
-import kotlin.reflect.full.findAnnotation
 
 data class Employee (
     @MyColumnName("employee_id")

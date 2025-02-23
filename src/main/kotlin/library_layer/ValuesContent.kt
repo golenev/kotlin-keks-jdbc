@@ -5,7 +5,6 @@ class ValuesBuilder {
     infix fun String.to(value: Any?) {
         data[this] = value
     }
-
     fun build(): Map<String, Any?> = data
 }
 

@@ -6,6 +6,8 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Period
 import java.time.ZoneOffset.UTC
 import java.util.*
@@ -105,6 +107,12 @@ private fun Connection.toDBType(v: Any?): Any? = when (v) {
 private fun <R> ResultSet.map(mapper: ResultSet.() -> R): List<R> = mutableListOf<R>().also {
     while (next()) it += mapper()
 }
+
+// Экстеншен-функция для преобразования java.sql.Date в java.time.LocalDate
+fun ResultSet.getLocalDate(column: String): LocalDate = getDate(column).toLocalDate()
+
+// Экстеншен-функция для преобразования java.sql.Timestamp в java.time.LocalDateTime
+fun ResultSet.getLocalDateTime(column: String): LocalDateTime = getTimestamp(column).toLocalDateTime()
 
 open class SqlExpr(@Language("SQL") protected val expr: String, val values: Collection<*> = emptyList<Any>()) {
     constructor(expr: String, vararg values: Any?) : this(expr, values.toList())
