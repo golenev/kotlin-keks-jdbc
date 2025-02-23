@@ -13,10 +13,6 @@ import java.time.ZoneOffset.UTC
 import java.util.*
 import javax.sql.DataSource
 
-fun <R> DataSource.query(table: String, id: UUID, mapper: ResultSet.() -> R): R =
-    query(table, mapOf("id" to id), mapper = mapper).firstOrNull()
-        ?: throw NoSuchElementException("$table:$id not found")
-
 fun <R> DataSource.query(
     table: String,
     where: Map<String, Any?>,
@@ -47,12 +43,6 @@ fun DataSource.exec(@Language("SQL") expr: String, values: Sequence<Any?> = empt
 
 fun DataSource.insert(table: String, values: Map<String, *>): Int =
     exec(insertExpr(table, values), setValues(values))
-
-fun DataSource.upsert(table: String, values: Map<String, *>, uniqueFields: String = "id"): Int =
-    exec(
-        insertExpr(table, values) + " on conflict ($uniqueFields) do update set ${setExpr(values)}",
-        setValues(values) + setValues(values)
-    )
 
 private fun insertExpr(table: String, values: Map<String, *>) = """
   insert into $table (${values.keys.joinToString()})
